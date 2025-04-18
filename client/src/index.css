@@ -1,0 +1,132 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;700&family=Noto+Sans:wght@400;500;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 97%;
+    --foreground: 222.2 84% 4.9%;
+    
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    
+    --primary: 152 55% 40%;
+    --primary-foreground: 210 40% 98%;
+    
+    --secondary: 249 80% 68%;
+    --secondary-foreground: 210 40% 98%;
+    
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 152 55% 40%;
+    
+    --radius: 0.5rem;
+  }
+  
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    
+    --card: 222.2 84% 9.8%;
+    --card-foreground: 210 40% 98%;
+    
+    --popover: 222.2 84% 9.8%;
+    --popover-foreground: 210 40% 98%;
+    
+    --primary: 152 55% 40%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    
+    --secondary: 249 80% 68%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 152 55% 40%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+  
+  html[dir="rtl"] {
+    text-align: right;
+  }
+  
+  /* Right-to-left text direction for Arabic content */
+  .rtl-text {
+    direction: rtl;
+    text-align: right;
+  }
+  
+  /* Override for React Flow specific elements */
+  .react-flow__node {
+    border-radius: 6px;
+    padding: 10px;
+    text-align: center;
+    font-family: 'Noto Sans Arabic', sans-serif;
+  }
+  
+  .react-flow__edge-path {
+    stroke-width: 2;
+  }
+  
+  .react-flow__edge-text {
+    font-family: 'Noto Sans Arabic', sans-serif;
+  }
+  
+  /* Light scrollbar styles */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+  }
+
+  .dark ::-webkit-scrollbar-track {
+    background: #2a2a2a;
+  }
+  
+  .dark ::-webkit-scrollbar-thumb {
+    background: #555;
+  }
+  
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: #777;
+  }
+}
