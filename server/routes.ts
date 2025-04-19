@@ -39,7 +39,7 @@ async function parseNarrationChain(chain: string) {
   ];
 
   // Remove punctuation from chain
-  const cleanedText = chain.replace(/[^\p{L}\p{N}\s]/gu, '');
+  const cleanedText = chain.replace(/[^a-zA-Z0-9\u0600-\u06FF\s]/g, '');
 
   // Prompt for the AI to parse the narration chain
   const prompt = `Given this Arabic hadith chain: "${cleanedText}", extract:

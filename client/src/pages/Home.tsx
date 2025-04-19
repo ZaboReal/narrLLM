@@ -19,8 +19,8 @@ const Home: React.FC = () => {
   const handleAnalyze = async () => {
     if (!narrationChain.trim()) {
       toast({
-        title: "خطأ",
-        description: "الرجاء إدخال سلسلة الإسناد",
+        title: "Error",
+        description: "Please enter a narration chain",
         variant: "destructive",
       });
       return;
@@ -35,16 +35,16 @@ const Home: React.FC = () => {
       setAnalysisStatus('success');
       
       toast({
-        title: "تم التحليل",
-        description: "تم تحليل سلسلة الإسناد بنجاح",
+        title: "Analysis Complete",
+        description: "The narration chain has been analyzed successfully",
       });
     } catch (error) {
       console.error('Error analyzing narration chain:', error);
       setAnalysisStatus('error');
       
       toast({
-        title: "خطأ في التحليل",
-        description: "حدث خطأ أثناء تحليل سلسلة الإسناد",
+        title: "Analysis Error",
+        description: "An error occurred while analyzing the narration chain",
         variant: "destructive",
       });
     }
@@ -53,8 +53,8 @@ const Home: React.FC = () => {
   const handleMerge = async () => {
     if (!mergeChain.trim() || !analysisResult) {
       toast({
-        title: "خطأ",
-        description: "الرجاء إدخال سلسلة الإسناد الثانية",
+        title: "Error",
+        description: "Please enter a second narration chain",
         variant: "destructive",
       });
       return;
@@ -68,23 +68,23 @@ const Home: React.FC = () => {
       setAnalysisStatus('success');
       
       toast({
-        title: "تم الدمج",
-        description: "تم دمج سلاسل الإسناد بنجاح",
+        title: "Merge Complete",
+        description: "The narration chains have been merged successfully",
       });
     } catch (error) {
       console.error('Error merging chains:', error);
       setAnalysisStatus('error');
       
       toast({
-        title: "خطأ في الدمج",
-        description: "حدث خطأ أثناء دمج سلاسل الإسناد",
+        title: "Merge Error",
+        description: "An error occurred while merging the narration chains",
         variant: "destructive",
       });
     }
   };
 
   return (
-    <div className="flex flex-col min-h-screen" dir="rtl">
+    <div className="flex flex-col min-h-screen">
       <Header />
       
       <main className="container mx-auto px-4 py-6 flex-grow">
@@ -99,10 +99,12 @@ const Home: React.FC = () => {
           isAnalysisComplete={!!analysisResult}
         />
         
-        <GraphVisualization 
-          hadithChain={analysisResult}
-          isVisible={isGraphVisible}
-        />
+        {isGraphVisible && (
+          <GraphVisualization 
+            hadithChain={analysisResult}
+            isVisible={isGraphVisible}
+          />
+        )}
         
         <ApiResponse 
           analysisResult={analysisResult}
