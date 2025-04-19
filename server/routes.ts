@@ -63,8 +63,43 @@ async function mergeNarrationChains(originalChain: string, newChain: string) {
     // Clean the chains
     const cleanedOriginal = originalChain.replace(/[^a-zA-Z0-9\u0600-\u06FF\s]/g, '');
     const cleanedNew = newChain.replace(/[^a-zA-Z0-9\u0600-\u06FF\s]/g, '');
+    
+    // First analyze the new chain in the same way as parseNarrationChain
+    const newChainResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{
+            text: `Given this Arabic hadith chain: "${cleanedNew}", extract:
+            1. The narrators in order
+            2. The transmission types between them
+            Respond only with a JSON object containing "narrators" (array) and "transmissions" (array).`
+          }]
+        }]
+      })
+    });
 
-    // API request to Gemini
+    if (!newChainResponse.ok) {
+      throw new Error(`API request failed (${newChainResponse.status})`);
+    }
+
+    const newChainData = await newChainResponse.json();
+    const newChainText = newChainData.candidates?.[0]?.content?.parts?.[0]?.text;
+    
+    if (!newChainText) {
+      throw new Error('No text found in Gemini response for new chain');
+    }
+    
+    // Extract JSON from new chain response
+    const newChainJsonMatch = newChainText.match(/\{[\s\S]*\}/);
+    if (!newChainJsonMatch) {
+      throw new Error('No JSON found in Gemini response for new chain');
+    }
+    
+    // Now merge the chains
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`, {
       method: 'POST',
       headers: {

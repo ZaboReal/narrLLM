@@ -88,28 +88,34 @@ const Home: React.FC = () => {
       <Header />
       
       <main className="container mx-auto px-4 py-6 flex-grow">
-        <InputSection 
-          narrationChain={narrationChain}
-          mergeChain={mergeChain}
-          onNarrationChainChange={setNarrationChain}
-          onMergeChainChange={setMergeChain}
-          onAnalyze={handleAnalyze}
-          onMerge={handleMerge}
-          analysisStatus={analysisStatus}
-          isAnalysisComplete={!!analysisResult}
-        />
-        
-        {isGraphVisible && (
-          <GraphVisualization 
-            hadithChain={analysisResult}
-            isVisible={isGraphVisible}
-          />
-        )}
-        
-        <ApiResponse 
-          analysisResult={analysisResult}
-          status={analysisStatus}
-        />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="flex flex-col space-y-6">
+            <InputSection 
+              narrationChain={narrationChain}
+              mergeChain={mergeChain}
+              onNarrationChainChange={setNarrationChain}
+              onMergeChainChange={setMergeChain}
+              onAnalyze={handleAnalyze}
+              onMerge={handleMerge}
+              analysisStatus={analysisStatus}
+              isAnalysisComplete={!!analysisResult}
+            />
+            
+            <ApiResponse 
+              analysisResult={analysisResult}
+              status={analysisStatus}
+            />
+          </div>
+          
+          <div className="h-full">
+            {isGraphVisible && (
+              <GraphVisualization 
+                hadithChain={analysisResult}
+                isVisible={isGraphVisible}
+              />
+            )}
+          </div>
+        </div>
       </main>
       
       <Footer />

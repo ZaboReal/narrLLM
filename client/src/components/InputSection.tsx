@@ -28,93 +28,77 @@ const InputSection: React.FC<InputSectionProps> = ({
   const isLoading = analysisStatus === 'loading';
   
   return (
-    <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-      <Card className="bg-card text-card-foreground">
-        <CardContent className="p-6">
-          <h2 className="text-xl font-bold mb-4 text-center">Hadith Chain Builder</h2>
-          
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-2 text-right">Parse Chain with AI</h3>
-            <Textarea 
-              id="narrationChain" 
-              rows={3} 
-              dir="rtl"
-              className="block w-full p-3 rtl-text text-lg bg-background border border-input rounded-lg focus:ring-primary focus:border-primary"
-              placeholder="مالك سمعت نافع عن ابن عمر"
-              value={narrationChain}
-              onChange={(e) => onNarrationChainChange(e.target.value)}
-            />
-            <div className="flex justify-center mt-4">
-              <Button 
-                onClick={onAnalyze}
-                className="w-full py-2.5 bg-primary text-white hover:bg-primary/90 rounded-md font-medium transition-colors focus:outline-none"
-                disabled={isLoading}
-                variant="default"
-              >
-                Parse Chain with AI
-              </Button>
-            </div>
-            
-            {isAnalysisComplete && (
-              <div className="mt-4 text-right text-sm text-purple-600">
-                يرجى التأكد من تحليل السلسلة: ملاحظة! تأكد السلسلة من الجهة اليمين إلى اليسار
-              </div>
-            )}
-          </div>
-          
-          <div className="mt-6 pt-6 border-t border-border">
-            <h3 className="text-lg font-semibold mb-2 text-right">Merge Chains</h3>
-            <Textarea 
-              id="mergeChain" 
-              rows={3} 
-              dir="rtl"
-              className="block w-full p-3 rtl-text text-lg bg-background border border-input rounded-lg focus:ring-secondary focus:border-secondary"
-              placeholder="أحمد عن قتادة عن أنس"
-              value={mergeChain}
-              onChange={(e) => onMergeChainChange(e.target.value)}
-              disabled={!isAnalysisComplete}
-            />
-            <div className="flex justify-center mt-4">
-              <Button 
-                onClick={onMerge}
-                className="w-full bg-slate-800 text-white hover:bg-slate-700 rounded-md font-medium transition-colors focus:outline-none"
-                disabled={!isAnalysisComplete || isLoading}
-                variant="default"
-              >
-                Update Hadith
-              </Button>
-            </div>
-          </div>
-          
+    <Card className="bg-card text-card-foreground">
+      <CardContent className="p-6">
+        <h2 className="text-xl font-bold mb-4 text-center">Hadith Chain Builder</h2>
+        
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold mb-2 text-right">Parse Chain with AI</h3>
+          <Textarea 
+            id="narrationChain" 
+            rows={3} 
+            dir="rtl"
+            className="block w-full p-3 rtl-text text-lg bg-background border border-input rounded-lg focus:ring-primary focus:border-primary"
+            placeholder="مالك سمعت نافع عن ابن عمر"
+            value={narrationChain}
+            onChange={(e) => onNarrationChainChange(e.target.value)}
+          />
           <div className="flex justify-center mt-4">
             <Button 
-              onClick={() => {
-                onNarrationChainChange('');
-                onMergeChainChange('');
-              }}
-              className="w-full bg-gray-200 text-gray-800 hover:bg-gray-300 rounded-md font-medium transition-colors focus:outline-none"
-              variant="outline"
+              onClick={onAnalyze}
+              className="w-full py-2.5 bg-primary text-white hover:bg-primary/90 rounded-md font-medium transition-colors focus:outline-none"
+              disabled={isLoading}
+              variant="default"
             >
-              Clear Chain
+              Parse Chain with AI
             </Button>
           </div>
-        </CardContent>
-      </Card>
-      
-      <Card className="bg-card text-card-foreground">
-        <CardContent className="p-6">
-          <h2 className="text-xl font-bold mb-4 text-center">Chain Visualization</h2>
           
-          <div className="h-64 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-lg">
-            {!isAnalysisComplete ? (
-              <p className="text-gray-500">Add narrators to visualize the chain</p>
-            ) : (
-              <p className="text-gray-500">Graph will be displayed here</p>
-            )}
+          {isAnalysisComplete && (
+            <div className="mt-4 text-right text-sm text-purple-600">
+              يرجى التأكد من تحليل السلسلة: ملاحظة! تأكد السلسلة من الجهة اليمين إلى اليسار
+            </div>
+          )}
+        </div>
+        
+        <div className="mt-6 pt-6 border-t border-border">
+          <h3 className="text-lg font-semibold mb-2 text-right">Merge Chains</h3>
+          <Textarea 
+            id="mergeChain" 
+            rows={3} 
+            dir="rtl"
+            className="block w-full p-3 rtl-text text-lg bg-background border border-input rounded-lg focus:ring-secondary focus:border-secondary"
+            placeholder="أحمد عن قتادة عن أنس"
+            value={mergeChain}
+            onChange={(e) => onMergeChainChange(e.target.value)}
+            disabled={!isAnalysisComplete}
+          />
+          <div className="flex justify-center mt-4">
+            <Button 
+              onClick={onMerge}
+              className="w-full bg-slate-800 text-white hover:bg-slate-700 rounded-md font-medium transition-colors focus:outline-none"
+              disabled={!isAnalysisComplete || isLoading}
+              variant="default"
+            >
+              Update Hadith
+            </Button>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+        
+        <div className="flex justify-center mt-4">
+          <Button 
+            onClick={() => {
+              onNarrationChainChange('');
+              onMergeChainChange('');
+            }}
+            className="w-full bg-gray-200 text-gray-800 hover:bg-gray-300 rounded-md font-medium transition-colors focus:outline-none"
+            variant="outline"
+          >
+            Clear Chain
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
