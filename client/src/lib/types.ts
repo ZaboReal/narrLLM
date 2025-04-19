@@ -13,8 +13,8 @@ export interface HadithStructure {
 
 export interface HadithChain {
   narrators: string[];
-  transmissionTypes: string[];
-  structure: HadithStructure;
+  transmissions: string[];
+  structure?: HadithStructure;
 }
 
 export interface AnalyzeRequestBody {

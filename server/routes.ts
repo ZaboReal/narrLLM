@@ -38,39 +38,14 @@ async function parseNarrationChain(chain: string) {
     },
   ];
 
+  // Remove punctuation from chain
+  const cleanedText = chain.replace(/[^\p{L}\p{N}\s]/gu, '');
+
   // Prompt for the AI to parse the narration chain
-  const prompt = `
-  Parse the following Islamic narration chain (Isnad) in Arabic into its component narrators and transmission types.
-  
-  Narration chain: "${chain}"
-  
-  Return a JSON object with the following structure:
-  {
-    "narrators": ["list of all narrators in order"],
-    "transmissionTypes": ["list of transmission types between narrators"],
-    "structure": {
-      "root": "the first narrator (usually the companion)",
-      "connections": [
-        {"from": "narrator1", "to": "narrator2", "type": "transmission type"}
-      ]
-    }
-  }
-  
-  For example, if the chain is "مالك عن نافع عن ابن عمر", the output should be:
-  {
-    "narrators": ["ابن عمر", "نافع", "مالك"],
-    "transmissionTypes": ["عن", "عن"],
-    "structure": {
-      "root": "ابن عمر",
-      "connections": [
-        {"from": "ابن عمر", "to": "نافع", "type": "عن"},
-        {"from": "نافع", "to": "مالك", "type": "عن"}
-      ]
-    }
-  }
-  
-  Only respond with the JSON structure, no additional text.
-  `;
+  const prompt = `Given this Arabic hadith chain: "${cleanedText}", extract:
+  1. The narrators in order
+  2. The transmission types between them
+  Respond only with a JSON object containing "narrators" (array) and "transmissions" (array).`;
 
   // Generate content
   const result = await model.generateContent({
