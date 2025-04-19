@@ -1,153 +1,122 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
 
-// Initialize Google Generative AI with API key
+// Hard-coded API Key for Gemini
 const API_KEY = "AIzaSyD0hWyODxnEjjCQwu9jwlqUll9R4LGqOxU";
-const genAI = new GoogleGenerativeAI(API_KEY);
 
 async function parseNarrationChain(chain: string) {
-  // Configure the generative model
-  const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-  
-  // Set safety settings to allow Arabic content
-  const generationConfig = {
-    temperature: 0.2,
-    topK: 40,
-    topP: 0.95,
-    maxOutputTokens: 1024,
-  };
-  
-  const safetySettings = [
-    {
-      category: HarmCategory.HARM_CATEGORY_HARASSMENT,
-      threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-    },
-    {
-      category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-      threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-    },
-    {
-      category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-      threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-    },
-    {
-      category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-      threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-    },
-  ];
-
-  // Remove punctuation from chain
-  const cleanedText = chain.replace(/[^a-zA-Z0-9\u0600-\u06FF\s]/g, '');
-
-  // Prompt for the AI to parse the narration chain
-  const prompt = `Given this Arabic hadith chain: "${cleanedText}", extract:
-  1. The narrators in order
-  2. The transmission types between them
-  Respond only with a JSON object containing "narrators" (array) and "transmissions" (array).`;
-
-  // Generate content
-  const result = await model.generateContent({
-    contents: [{ role: "user", parts: [{ text: prompt }] }],
-    generationConfig,
-    safetySettings,
-  });
-
-  const response = result.response;
-  const text = response.text();
-  
   try {
-    // Extract JSON from text
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    const jsonString = jsonMatch ? jsonMatch[0] : text;
+    // Remove punctuation from chain
+    const cleanedText = chain.replace(/[^a-zA-Z0-9\u0600-\u06FF\s]/g, '');
+
+    // API request to Gemini
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{
+            text: `Given this Arabic hadith chain: "${cleanedText}", extract:
+            1. The narrators in order
+            2. The transmission types between them
+            Respond only with a JSON object containing "narrators" (array) and "transmissions" (array).`
+          }]
+        }]
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`API request failed (${response.status})`);
+    }
+
+    const data = await response.json();
+    const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text;
     
-    // Parse the JSON string to object
-    return JSON.parse(jsonString);
+    if (!responseText) {
+      throw new Error('No text found in Gemini response');
+    }
+    
+    try {
+      // Extract JSON from text
+      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error('No JSON found in Gemini response');
+      }
+      
+      return JSON.parse(jsonMatch[0]);
+    } catch (error) {
+      console.error('Failed to parse Gemini response:', responseText);
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to parse Gemini response: ${errorMsg}`);
+    }
   } catch (error) {
-    console.error("Error parsing AI response:", error);
-    console.log("Raw AI response:", text);
-    throw new Error("Failed to parse the narration chain");
+    console.error("Error in parseNarrationChain:", error);
+    throw error;
   }
 }
 
 async function mergeNarrationChains(originalChain: string, newChain: string) {
-  // Configure the generative model
-  const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-  
-  const generationConfig = {
-    temperature: 0.2,
-    topK: 40,
-    topP: 0.95,
-    maxOutputTokens: 1024,
-  };
-  
-  const safetySettings = [
-    {
-      category: HarmCategory.HARM_CATEGORY_HARASSMENT,
-      threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-    },
-    {
-      category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-      threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-    },
-    {
-      category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-      threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-    },
-    {
-      category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-      threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH,
-    },
-  ];
-
-  // Prompt for the AI to merge the narration chains
-  const prompt = `
-  I have two Islamic narration chains (Isnad) in Arabic that I want to merge into a single structure.
-  
-  Original Chain: "${originalChain}"
-  Second Chain: "${newChain}"
-  
-  Analyze both chains and merge them into a single structure. Identify common narrators and create a graph showing all unique paths.
-  
-  Return a JSON object with the following structure:
-  {
-    "narrators": ["list of all unique narrators in both chains"],
-    "transmissionTypes": ["list of all transmission types"],
-    "structure": {
-      "root": "the first common narrator (usually the companion)",
-      "connections": [
-        {"from": "narrator1", "to": "narrator2", "type": "transmission type"}
-      ]
-    }
-  }
-  
-  For example, if the chains are "مالك عن نافع عن ابن عمر" and "مالك عن سالم عن ابن عمر", the output should show both paths from ابن عمر to مالك.
-  
-  Only respond with the JSON structure, no additional text.
-  `;
-
-  // Generate content
-  const result = await model.generateContent({
-    contents: [{ role: "user", parts: [{ text: prompt }] }],
-    generationConfig,
-    safetySettings,
-  });
-
-  const response = result.response;
-  const text = response.text();
-  
   try {
-    // Extract JSON from text
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    const jsonString = jsonMatch ? jsonMatch[0] : text;
+    // Clean the chains
+    const cleanedOriginal = originalChain.replace(/[^a-zA-Z0-9\u0600-\u06FF\s]/g, '');
+    const cleanedNew = newChain.replace(/[^a-zA-Z0-9\u0600-\u06FF\s]/g, '');
+
+    // API request to Gemini
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{
+            text: `I have two Islamic narration chains (Isnad) in Arabic that I want to merge.
+  
+            Original Chain: "${cleanedOriginal}"
+            Second Chain: "${cleanedNew}"
+            
+            Analyze both chains and create a merged chain. Return a JSON object with:
+            {
+              "narrators": ["all unique narrators from both chains"],
+              "transmissions": ["all transmission types used"]
+            }
+            
+            Only respond with the JSON object, no other text.`
+          }]
+        }]
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`API request failed (${response.status})`);
+    }
+
+    const data = await response.json();
+    const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text;
     
-    // Parse the JSON string to object
-    return JSON.parse(jsonString);
+    if (!responseText) {
+      throw new Error('No text found in Gemini response');
+    }
+    
+    try {
+      // Extract JSON from text
+      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error('No JSON found in Gemini response');
+      }
+      
+      return JSON.parse(jsonMatch[0]);
+    } catch (error) {
+      console.error('Failed to parse Gemini response:', responseText);
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to parse Gemini response: ${errorMsg}`);
+    }
   } catch (error) {
-    console.error("Error parsing AI response:", error);
-    console.log("Raw AI response:", text);
-    throw new Error("Failed to merge the narration chains");
+    console.error("Error in mergeNarrationChains:", error);
+    throw error;
   }
 }
 

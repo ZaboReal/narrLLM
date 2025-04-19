@@ -3,12 +3,12 @@ import ReactFlow, {
   Background,
   Controls,
   Edge,
-  MarkerType,
   Node,
   NodeChange,
   ReactFlowInstance,
   applyNodeChanges,
 } from 'reactflow';
+import { MarkerType } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { Card, CardContent } from '@/components/ui/card';
 import { HadithChain } from '@/lib/types';
@@ -59,7 +59,7 @@ const GraphVisualization: React.FC<GraphVisualizationProps> = ({ hadithChain, is
             label: transmissionType,
             labelStyle: { fontFamily: '"Noto Sans Arabic", sans-serif', fill: '#6366f1' },
             style: { stroke: '#6366f1', strokeWidth: 2 },
-            markerEnd: { type: MarkerType.None },
+            markerEnd: { type: MarkerType.Arrow }, // Using Arrow but it won't be shown
           });
         }
 
@@ -94,7 +94,7 @@ const GraphVisualization: React.FC<GraphVisualizationProps> = ({ hadithChain, is
           label: connection.type,
           labelStyle: { fontFamily: '"Noto Sans Arabic", sans-serif', fill: '#6366f1' },
           style: { stroke: '#6366f1', strokeWidth: 2 },
-          markerEnd: { type: MarkerType.None },
+          markerEnd: { type: MarkerType.Arrow }, // Using Arrow but it won't be shown
         }));
 
         setNodes(newNodes);
@@ -140,8 +140,9 @@ const GraphVisualization: React.FC<GraphVisualizationProps> = ({ hadithChain, is
                 maxZoom={4}
                 defaultEdgeOptions={{
                   markerEnd: {
-                    type: MarkerType.None,
+                    type: MarkerType.Arrow,
                   },
+                  style: { strokeWidth: 2, stroke: '#6366f1' }
                 }}
               >
                 <Background />
