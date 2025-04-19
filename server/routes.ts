@@ -11,7 +11,7 @@ async function parseNarrationChain(chain: string) {
     const cleanedText = chain.replace(/[^a-zA-Z0-9\u0600-\u06FF\s]/g, '');
 
     // API request to Gemini
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -65,7 +65,7 @@ async function mergeNarrationChains(originalChain: string, newChain: string) {
     const cleanedNew = newChain.replace(/[^a-zA-Z0-9\u0600-\u06FF\s]/g, '');
 
     // API request to Gemini
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
