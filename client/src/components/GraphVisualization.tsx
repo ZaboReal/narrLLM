@@ -77,7 +77,7 @@ const GraphVisualization: React.FC<GraphVisualizationProps> = ({ hadithChain, is
             type: 'smoothstep',
             label: transmissionType,
             labelStyle: { fontFamily: '"Noto Sans Arabic", sans-serif', fill: '#000' },
-            style: { stroke: '#000', strokeWidth: 1.5 },
+            style: { stroke: '#000', strokeWidth: 1.5, strokeDasharray: '5,5' },
           });
         }
 
@@ -116,7 +116,7 @@ const GraphVisualization: React.FC<GraphVisualizationProps> = ({ hadithChain, is
           type: 'smoothstep',
           label: connection.type,
           labelStyle: { fontFamily: '"Noto Sans Arabic", sans-serif', fill: '#000' },
-          style: { stroke: '#000', strokeWidth: 1.5 },
+          style: { stroke: '#000', strokeWidth: 1.5, strokeDasharray: '5,5' },
         }));
 
         setNodes(newNodes);
@@ -160,10 +160,10 @@ const GraphVisualization: React.FC<GraphVisualizationProps> = ({ hadithChain, is
               minZoom={0.2}
               maxZoom={4}
               defaultEdgeOptions={{
-                style: { strokeWidth: 1.5, stroke: '#000' }
+                style: { strokeWidth: 1.5, stroke: '#000', strokeDasharray: '5,5' }
               }}
             >
-              <Background color="#f0f0f0" />
+              <Background gap={15} size={1} color="#000" />
               <Controls />
             </ReactFlow>
           </div>

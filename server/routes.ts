@@ -64,91 +64,58 @@ async function mergeNarrationChains(originalChain: string, newChain: string) {
     const cleanedOriginal = originalChain.replace(/[^a-zA-Z0-9\u0600-\u06FF\s]/g, '');
     const cleanedNew = newChain.replace(/[^a-zA-Z0-9\u0600-\u06FF\s]/g, '');
     
-    // First analyze the new chain in the same way as parseNarrationChain
-    const newChainResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: [{
-          parts: [{
-            text: `Given this Arabic hadith chain: "${cleanedNew}", extract:
-            1. The narrators in order
-            2. The transmission types between them
-            Respond only with a JSON object containing "narrators" (array) and "transmissions" (array).`
-          }]
-        }]
-      })
-    });
-
-    if (!newChainResponse.ok) {
-      throw new Error(`API request failed (${newChainResponse.status})`);
-    }
-
-    const newChainData = await newChainResponse.json();
-    const newChainText = newChainData.candidates?.[0]?.content?.parts?.[0]?.text;
+    // First analyze each chain separately to get the structure
+    const originalChainResult = await parseNarrationChain(originalChain);
+    const newChainResult = await parseNarrationChain(newChain);
     
-    if (!newChainText) {
-      throw new Error('No text found in Gemini response for new chain');
+    // Create a merged list of narrators (using filter instead of Set for compatibility)
+    const allNarrators = [...originalChainResult.narrators, ...newChainResult.narrators].filter(
+      (narrator, index, self) => self.indexOf(narrator) === index
+    );
+    
+    // Create a merged list of transmissions (using filter instead of Set for compatibility)
+    const allTransmissions = [...originalChainResult.transmissions, ...newChainResult.transmissions].filter(
+      (transmission, index, self) => self.indexOf(transmission) === index
+    );
+    
+    // Create connections array for our structure
+    const connections = [];
+    
+    // Add connections from the original chain
+    for (let i = 0; i < originalChainResult.narrators.length - 1; i++) {
+      connections.push({
+        from: originalChainResult.narrators[i],
+        to: originalChainResult.narrators[i + 1],
+        type: originalChainResult.transmissions[i] || "عن"
+      });
     }
     
-    // Extract JSON from new chain response
-    const newChainJsonMatch = newChainText.match(/\{[\s\S]*\}/);
-    if (!newChainJsonMatch) {
-      throw new Error('No JSON found in Gemini response for new chain');
-    }
-    
-    // Now merge the chains
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: [{
-          parts: [{
-            text: `I have two Islamic narration chains (Isnad) in Arabic that I want to merge.
-  
-            Original Chain: "${cleanedOriginal}"
-            Second Chain: "${cleanedNew}"
-            
-            Analyze both chains and create a merged chain. Return a JSON object with:
-            {
-              "narrators": ["all unique narrators from both chains"],
-              "transmissions": ["all transmission types used"]
-            }
-            
-            Only respond with the JSON object, no other text.`
-          }]
-        }]
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error(`API request failed (${response.status})`);
-    }
-
-    const data = await response.json();
-    const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    
-    if (!responseText) {
-      throw new Error('No text found in Gemini response');
-    }
-    
-    try {
-      // Extract JSON from text
-      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) {
-        throw new Error('No JSON found in Gemini response');
-      }
+    // Add connections from the new chain, avoiding duplicates
+    for (let i = 0; i < newChainResult.narrators.length - 1; i++) {
+      const from = newChainResult.narrators[i];
+      const to = newChainResult.narrators[i + 1];
+      const type = newChainResult.transmissions[i] || "عن";
       
-      return JSON.parse(jsonMatch[0]);
-    } catch (error) {
-      console.error('Failed to parse Gemini response:', responseText);
-      const errorMsg = error instanceof Error ? error.message : String(error);
-      throw new Error(`Failed to parse Gemini response: ${errorMsg}`);
+      // Check if this connection already exists
+      const existingConnection = connections.find(
+        conn => conn.from === from && conn.to === to
+      );
+      
+      // If connection doesn't exist, add it
+      if (!existingConnection) {
+        connections.push({ from, to, type });
+      }
     }
+    
+    // Return the merged result with structure
+    return {
+      narrators: allNarrators,
+      transmissions: allTransmissions,
+      structure: {
+        root: originalChainResult.narrators[0], // Use the first narrator from original chain as root
+        connections: connections
+      }
+    };
   } catch (error) {
     console.error("Error in mergeNarrationChains:", error);
     throw error;
