@@ -18,16 +18,90 @@ interface GraphVisualizationProps {
   isVisible: boolean;
 }
 
-// Layout for top to bottom tree
-const calculateNodePositions = (narrators: string[]): { [key: string]: { x: number, y: number } } => {
+// Layout for top to bottom tree with branching
+const calculateNodePositions = (
+  narrators: string[], 
+  connections?: { from: string; to: string; type: string }[]
+): { [key: string]: { x: number, y: number } } => {
   const positions: { [key: string]: { x: number, y: number } } = {};
   
-  narrators.forEach((narrator, index) => {
-    positions[narrator] = {
-      x: (index % 3) * 180,  // Arrange in 3 columns at most
-      y: Math.floor(index / 3) * 120  // New row every 3 narrators
-    };
-  });
+  // If we have connections, we can create a better layout
+  if (connections && connections.length > 0) {
+    // Calculate depths (levels) for each narrator
+    const depths: { [key: string]: number } = {};
+    const visited = new Set<string>();
+    
+    // Find roots (narrators that don't have any parents)
+    const childToParents = new Map<string, string[]>();
+    
+    // Build a map of children to parents from connections
+    for (const conn of connections) {
+      if (!childToParents.has(conn.to)) {
+        childToParents.set(conn.to, []);
+      }
+      childToParents.get(conn.to)!.push(conn.from);
+    }
+    
+    // Find narrators without parents (roots)
+    const roots = narrators.filter(narrator => !childToParents.has(narrator) || childToParents.get(narrator)!.length === 0);
+    
+    // Create horizontal positions
+    const horizontalPositions: { [key: string]: number } = {};
+    let currentX = 0;
+    
+    // Assign depths with BFS from roots
+    for (const root of roots) {
+      depths[root] = 0;
+      horizontalPositions[root] = currentX++;
+      
+      // Find children recursively to assign depths
+      const queue = [root];
+      while (queue.length > 0) {
+        const current = queue.shift()!;
+        if (visited.has(current)) continue;
+        visited.add(current);
+        
+        // Find children of current narrator
+        for (const conn of connections) {
+          if (conn.from === current) {
+            const child = conn.to;
+            // Ensure child's depth is at least parent's depth + 1
+            depths[child] = Math.max(
+              depths[child] || 0, 
+              depths[current] + 1
+            );
+            
+            if (!horizontalPositions[child]) {
+              horizontalPositions[child] = currentX++;
+            }
+            
+            queue.push(child);
+          }
+        }
+      }
+    }
+    
+    // Convert depths to y positions and horizontal positions to x positions
+    for (const narrator of narrators) {
+      // Default depth if not calculated
+      const depth = depths[narrator] || 0;
+      const x = horizontalPositions[narrator] || 0;
+      
+      positions[narrator] = {
+        y: depth * 120,
+        x: x * 180
+      };
+    }
+  } 
+  // Fallback to simple grid if no connections
+  else {
+    narrators.forEach((narrator, index) => {
+      positions[narrator] = {
+        x: (index % 3) * 180,  // Arrange in 3 columns at most
+        y: Math.floor(index / 3) * 120  // New row every 3 narrators
+      };
+    });
+  }
   
   return positions;
 };
@@ -86,8 +160,8 @@ const GraphVisualization: React.FC<GraphVisualizationProps> = ({ hadithChain, is
       } 
       // If we have a structure, use it
       else if (hadithChain.structure) {
-        // Calculate positions for nodes
-        const nodePositions = calculateNodePositions(hadithChain.narrators);
+        // Calculate positions for nodes using connections for better layout
+        const nodePositions = calculateNodePositions(hadithChain.narrators, hadithChain.structure.connections);
         
         // Create nodes from narrators
         const newNodes: Node[] = hadithChain.narrators.map((narrator) => ({

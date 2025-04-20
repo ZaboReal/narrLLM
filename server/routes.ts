@@ -79,33 +79,76 @@ async function mergeNarrationChains(originalChain: string, newChain: string) {
     );
     
     // Create connections array for our structure
-    const connections = [];
+    type Connection = { from: string; to: string; type: string };
+    const connections: Connection[] = [];
     
-    // Add connections from the original chain
-    for (let i = 0; i < originalChainResult.narrators.length - 1; i++) {
-      connections.push({
-        from: originalChainResult.narrators[i],
-        to: originalChainResult.narrators[i + 1],
-        type: originalChainResult.transmissions[i] || "عن"
-      });
+    // First, find common narrators between the chains (for merging points)
+    const commonNarrators = originalChainResult.narrators.filter(
+      (narrator: string) => newChainResult.narrators.includes(narrator)
+    );
+    
+    // Define types for narrator relationships
+    type NarratorRelation = { narrator: string; type: string };
+    type NarratorNode = { parents: NarratorRelation[]; children: NarratorRelation[] };
+    
+    // Create a map to store each narrator's parents (narrators that teach them)
+    // and children (narrators they teach)
+    const narratorMap = new Map<string, NarratorNode>();
+    
+    // Initialize the map with all narrators
+    for (const narrator of allNarrators) {
+      narratorMap.set(narrator, { parents: [], children: [] });
     }
     
-    // Add connections from the new chain, avoiding duplicates
-    for (let i = 0; i < newChainResult.narrators.length - 1; i++) {
-      const from = newChainResult.narrators[i];
-      const to = newChainResult.narrators[i + 1];
-      const type = newChainResult.transmissions[i] || "عن";
+    // Add parent-child relationships from the original chain
+    for (let i = 0; i < originalChainResult.narrators.length - 1; i++) {
+      const parent = originalChainResult.narrators[i];
+      const child = originalChainResult.narrators[i + 1];
+      const type = originalChainResult.transmissions[i] || "عن";
       
-      // Check if this connection already exists
-      const existingConnection = connections.find(
-        conn => conn.from === from && conn.to === to
-      );
+      // Add the child to the parent's children list
+      const parentNode = narratorMap.get(parent);
+      if (parentNode && !parentNode.children.find((c: NarratorRelation) => c.narrator === child)) {
+        parentNode.children.push({ narrator: child, type });
+      }
       
-      // If connection doesn't exist, add it
-      if (!existingConnection) {
-        connections.push({ from, to, type });
+      // Add the parent to the child's parents list
+      const childNode = narratorMap.get(child);
+      if (childNode && !childNode.parents.find((p: NarratorRelation) => p.narrator === parent)) {
+        childNode.parents.push({ narrator: parent, type });
       }
     }
+    
+    // Add parent-child relationships from the new chain
+    for (let i = 0; i < newChainResult.narrators.length - 1; i++) {
+      const parent = newChainResult.narrators[i];
+      const child = newChainResult.narrators[i + 1];
+      const type = newChainResult.transmissions[i] || "عن";
+      
+      // Add the child to the parent's children list
+      const parentNode = narratorMap.get(parent);
+      if (parentNode && !parentNode.children.find((c: NarratorRelation) => c.narrator === child)) {
+        parentNode.children.push({ narrator: child, type });
+      }
+      
+      // Add the parent to the child's parents list
+      const childNode = narratorMap.get(child);
+      if (childNode && !childNode.parents.find((p: NarratorRelation) => p.narrator === parent)) {
+        childNode.parents.push({ narrator: parent, type });
+      }
+    }
+    
+    // Now create the connections from the merged narrator map
+    // Convert the Map.entries() to an array to avoid iteration issues
+    Array.from(narratorMap.entries()).forEach(([narrator, relations]) => {
+      for (const child of relations.children) {
+        connections.push({
+          from: narrator,
+          to: child.narrator,
+          type: child.type
+        });
+      }
+    });
     
     // Return the merged result with structure
     return {
