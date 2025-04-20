@@ -1,12 +1,17 @@
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { parse } from 'csv-parse/sync';
 import { db } from './db';
 import { narrators } from '@shared/schema';
 
+// Get current file URL and directory in ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 async function importNarrators() {
   try {
-    const csvFilePath = path.join(__dirname, '../attached_assets/Lets see - narr (1).csv');
+    const csvFilePath = path.join(__dirname, '../attached_assets/narrators.csv');
     const fileContent = fs.readFileSync(csvFilePath, { encoding: 'utf-8' });
     
     const records = parse(fileContent, {
