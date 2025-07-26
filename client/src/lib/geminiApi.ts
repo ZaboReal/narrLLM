@@ -2,7 +2,7 @@ import { apiRequest } from './queryClient';
 import { HadithChain } from './types';
 
 // Google Gemini API integration
-const API_KEY = "AIzaSyD0hWyODxnEjjCQwu9jwlqUll9R4LGqOxU";
+const API_KEY = "add here";
 
 export async function analyzeNarrationChain(narrationChain: string): Promise<HadithChain> {
   try {
