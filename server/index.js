@@ -3,7 +3,7 @@ import express2 from "express";
 
 // server/routes.ts
 import { createServer } from "http";
-var API_KEY = "AIzaSyD0hWyODxnEjjCQwu9jwlqUll9R4LGqOxU";
+var API_KEY = "add here";
 async function parseNarrationChain(chain) {
   try {
     const cleanedText = chain.replace(/[^a-zA-Z0-9\u0600-\u06FF\s]/g, "");
