@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 
 // Hard-coded API Key for Gemini
-const API_KEY = "AIzaSyD0hWyODxnEjjCQwu9jwlqUll9R4LGqOxU";
+const API_KEY = "add here";
 
 async function parseNarrationChain(chain: string) {
   try {
